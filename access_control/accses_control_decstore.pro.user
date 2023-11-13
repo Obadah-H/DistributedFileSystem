@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 6.0.2, 2023-10-07T12:05:23. -->
+<!-- Written by QtCreator 6.0.2, 2023-10-22T20:13:29. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -236,8 +236,9 @@
     <valuelist type="QVariantList" key="CustomOutputParsers"/>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:/home/obadah/Desktop/sql_with_qt/accses_control_decstore.pro</value>
-    <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">/home/obadah/Desktop/sql_with_qt/accses_control_decstore.pro</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">accses_control_decstore2</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:/mnt/d84ec674-cb4a-4539-820c-082b524c8d98/github/DistributedFileSystem/access_control/accses_control_decstore.pro</value>
+    <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">/mnt/d84ec674-cb4a-4539-820c-082b524c8d98/github/DistributedFileSystem/access_control/accses_control_decstore.pro</value>
     <value type="bool" key="RunConfiguration.UseCppDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseLibrarySearchPath">true</value>

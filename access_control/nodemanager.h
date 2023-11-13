@@ -2,6 +2,7 @@
 #define NODEMANAGER_H
 
 #include "dbmanager.h"
+#include "dataManager.h"
 #include <QSqlDatabase>
 
 /**
@@ -18,7 +19,7 @@ public:
      * Constructor sets up connection with db and opens it
      * @param dbManager - absolute path to db file
      */
-    NodeManager(const DbManager& dbManager);
+    NodeManager(const DataManager& dbManager);
 
     /**
      * @brief Destructor
@@ -46,7 +47,7 @@ public:
     void buildCombinedTree() const;
 
 private:
-    DbManager m_dbManager;
+    DataManager m_dbManager;
 };
 
 #endif // DBMANAGER_H

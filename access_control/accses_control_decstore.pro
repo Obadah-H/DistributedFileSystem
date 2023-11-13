@@ -16,9 +16,11 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp \
+    dataManager.cpp \
     dbmanager.cpp \
     nodemanager.cpp
 
 HEADERS += \
+    dataManager.h \
     dbmanager.h \
     nodemanager.h

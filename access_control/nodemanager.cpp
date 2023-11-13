@@ -5,7 +5,7 @@
 #include <QSqlRecord>
 #include <QDebug>
 
-NodeManager::NodeManager(const DbManager &dbManager): m_dbManager(dbManager)
+NodeManager::NodeManager(const DataManager &dbManager): m_dbManager(dbManager)
 {
     m_dbManager.createTable();
 

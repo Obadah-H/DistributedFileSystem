@@ -2,6 +2,7 @@
 #include <QDebug>
 #include <dbmanager.h>
 #include <nodemanager.h>
+#include <dataManager.h>
 #include <QTime>
 
 
@@ -34,9 +35,13 @@ int main(int argc, char *argv[])
 
     QTime currentTime = QTime::currentTime();
     qDebug() << "Start at:" << currentTime;
-    fakeVDsTrees(2);
+    //fakeVDsTrees(2);
 
-    DbManager db(combinedTreePath);
+
+    DataManager* db = new DbManager (combinedTreePath);
+    db->fakeVDsTrees(2);
+    //DbManager db(combinedTreePath);
+    /*
     NodeManager node(db);
     node.migrateNodes({"vd0.db", "vd1.db"});
     node.compressNodes();
@@ -44,7 +49,7 @@ int main(int argc, char *argv[])
 
     currentTime = QTime::currentTime();
     qDebug() << "Finish at:" << currentTime;
-
+*/
     return a.exec();
 }
 

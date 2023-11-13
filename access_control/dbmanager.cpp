@@ -271,3 +271,25 @@ int DbManager::createCombiner(const QList<QStringList>& nodes, int combinerNumbe
     combinerNumber++;
     return combinerNumber;
 };
+
+
+void fakeVDsTree(const QString& name, int filesCount){
+    DbManager db(name);
+
+    if (db.isOpen())
+    {
+        db.createTable();
+        for (int i=0; i<filesCount; i++){
+            db.addNode("File"+QString::number(i), "/", "File", "/", "", "R");
+        }
+    }
+}
+
+/**
+ * @brief Fakes the creation of VD trees
+ */
+void fakeVDsTrees(int treesCount){
+    for (int i=0; i<treesCount; i++){
+        fakeVDsTree("vd"+QString::number(i)+".db", 500);
+    }
+}
