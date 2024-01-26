@@ -5,6 +5,9 @@
 class DataManager{
 
 public:
+
+    virtual ~DataManager() {};
+
     virtual bool isOpen() const;
 
     /**
@@ -30,7 +33,6 @@ public:
 
     virtual void migrateTable(const QString& dbPath) const;
 };
-
 
 
 

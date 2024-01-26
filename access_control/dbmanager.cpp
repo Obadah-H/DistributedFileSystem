@@ -6,8 +6,9 @@
 #include <QDir>
 #include <QCryptographicHash>
 
-DbManager::DbManager(const QString &path)
+void DbManager::init(const QString &path,  HashManager hashManager)
 {
+    m_hashManager= hashManager;
     m_db = QSqlDatabase::addDatabase("QSQLITE");
     m_db.setDatabaseName(path);
 
@@ -19,15 +20,31 @@ DbManager::DbManager(const QString &path)
     {
         qDebug() << "Database: connection ok";
     }
+    this->createTable();
 }
 
-DbManager::~DbManager()
-{
-    if (m_db.isOpen())
+void DbManager::fakeVDsTree(const QString& name, int filesCount, int offset){
+    DbManager db;
+    db.init(name, m_hashManager);
+
+    if (db.isOpen())
     {
-        m_db.close();
+        db.createTable();
+        for (int i=0; i<filesCount; i++){
+            db.addNode("File"+QString::number(i+offset+1), "/", "File", "/", "", "R");
+        }
     }
 }
+
+/**
+ * @brief Fakes the creation of VD trees
+ */
+void DbManager::fakeVDsTrees(int treesCount){
+    for (int i=0; i<treesCount; i++){
+        this->fakeVDsTree("vd"+QString::number(i)+".db", 500, i*500);
+    }
+}
+
 
 bool DbManager::isOpen() const
 {
@@ -50,20 +67,16 @@ bool DbManager::createTable()
     return success;
 }
 
-QString DbManager::hashString(const QString& str) const{
-    QByteArray str_byte_array = str.toUtf8();
-    QByteArray hash_byte_array = QCryptographicHash::hash(str_byte_array, QCryptographicHash::Sha256);
-    return QString(hash_byte_array.toHex());
-}
-
-
-bool DbManager::addNode(const QString& name, const QString& path, const QString& type,  const QString& parent,  const QString& compressed, const QString& access) const
+void DbManager::addNode(const QString& name, const QString& path, const QString& type,  const QString& parent,  const QString& compressed, const QString& access, QString hash )
 {
     bool success = false;
 
     if (!name.isEmpty() && !path.isEmpty() && !type.isEmpty())
     {
-        QString hash = hashString(name+path+type+parent+compressed+access);
+        if(hash == "")
+        {hash = name+path+type+parent+compressed+access;}
+
+        hash = m_hashManager.hashString(hash);
         QSqlQuery queryAdd;
         queryAdd.prepare("INSERT INTO nodes (name, path, type, parent, compressed, hash, access) VALUES ((:name), (:path), (:type), (:parent), (:compressed), (:hash), (:access))");
         queryAdd.bindValue(":name", name);
@@ -87,15 +100,8 @@ bool DbManager::addNode(const QString& name, const QString& path, const QString&
     {
         qDebug() << "add file failed: file info cannot be empty";
     }
-
-    return success;
 }
 
-QSqlQuery DbManager::getAllNodes() const
-{
-    QSqlQuery query("SELECT * FROM nodes");
-    return query;
-}
 
 QStringList DbManager::getRow(QSqlQuery query) const{
     int idId= query.record().indexOf("id");
@@ -119,17 +125,7 @@ QStringList DbManager::getRow(QSqlQuery query) const{
     return {id, name, path, type, parent, compressed, hash, access};
 }
 
-QSqlQuery DbManager::getAllPaths() const
-{
-    QSqlQuery query("SELECT Distinct path FROM nodes");
-    return query;
-}
-
-QString DbManager::getDbPath() const{
-    return m_db.databaseName();
-}
-
-void DbManager::migrateTable(const QString& dbPath) const{
+void DbManager::migrateTable(const QString& dbPath){
     QString originalDB = m_db.databaseName();
     QSqlDatabase srcDB = QSqlDatabase::addDatabase("QSQLITE");
     srcDB.setDatabaseName(dbPath);
@@ -232,7 +228,7 @@ QList<QStringList> DbManager::getDirectChildsByParent(const QString& parentPath)
 /**
  * @brief Compress all nodes which has one child node into one node
  */
-void DbManager::compressTwoNodes(int id, const QString& path) const{
+void DbManager::compressTwoNodes(int id, const QString& path){
     QSqlQuery query;
     QDir dir(path);
 
@@ -243,16 +239,17 @@ void DbManager::compressTwoNodes(int id, const QString& path) const{
     query.prepare("DELETE FROM nodes where path = (:path)");
     query.bindValue(":path", parentPath);
     query.exec();
+    qDebug() << "Delete:" << parentPath;
 
     query.prepare("UPDATE nodes set compressed = (:parent) || compressed  and path = (:path) where id = (:id)");
     query.bindValue(":id", id);
     query.bindValue(":path", parentPath);
-    query.bindValue(":parent", parentName+"/");
+    query.bindValue(":parent", parentName);
     query.exec();
 }
 
 
-int DbManager::createCombiner(const QList<QStringList>& nodes, int combinerNumber) const{
+int DbManager::createCombiner(const QList<QStringList>& nodes, int combinerNumber) {
     QStringList node1 = nodes[0];
     QStringList idsList;
     foreach(const QStringList& node, nodes){
@@ -265,7 +262,7 @@ int DbManager::createCombiner(const QList<QStringList>& nodes, int combinerNumbe
     addNode(combinerName,node[2], "Combiner", node[4],"", "" );
     //Reconnect nodes as combiner childs
     QSqlQuery query;
-    query.prepare("UPDATE nodes set parent = '"+node[4]+combinerName+"/"+"' where id in ("+ids+")");
+    query.prepare("UPDATE nodes set parent = '"+combinerName+"' where id in ("+ids+")");
     query.exec();
     //MakeCombinerAsParent
     combinerNumber++;
@@ -273,23 +270,49 @@ int DbManager::createCombiner(const QList<QStringList>& nodes, int combinerNumbe
 };
 
 
-void fakeVDsTree(const QString& name, int filesCount){
-    DbManager db(name);
+QStringList DbManager::getNodeByNameAndParent(const QString name, const QString path) {
+        QStringList  node;
 
-    if (db.isOpen())
-    {
-        db.createTable();
-        for (int i=0; i<filesCount; i++){
-            db.addNode("File"+QString::number(i), "/", "File", "/", "", "R");
+        QSqlQuery query;
+        query.prepare("SELECT * FROM nodes where name = (:name) and  path = (:path) ");
+        query.bindValue(":name", name);
+        query.bindValue(":path", path);
+        query.exec();
+        if(query.next())
+        {
+            node = getRow(query);
         }
+
+        return node;
+}
+QStringList  DbManager::getNodeBrother(const QStringList& node) {
+    QStringList  brother;
+
+    QSqlQuery query;
+    query.prepare("SELECT * FROM nodes where name != '"+node[1]+"' and  parent = '"+node[4]+"' ");
+    //query.bindValue(":name", node[1]);
+    //query.bindValue(":parent", node[4]);
+    query.exec();
+    if(query.next())
+    {
+        brother= getRow(query);
     }
+
+    return brother;
 }
 
-/**
- * @brief Fakes the creation of VD trees
- */
-void fakeVDsTrees(int treesCount){
-    for (int i=0; i<treesCount; i++){
-        fakeVDsTree("vd"+QString::number(i)+".db", 500);
+QStringList DbManager::getNodeParent(const QStringList& node) {
+
+    QStringList  parent;
+
+    QSqlQuery query;
+    query.prepare("SELECT * FROM nodes where name = (:name)");
+    query.bindValue(":name", node[4]);
+    query.exec();
+    if(query.next())
+    {
+        parent= getRow(query);
     }
+
+    return parent;
 }

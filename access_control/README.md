@@ -1,15 +1,7 @@
-# Access control Merkle tree creator
+# Merkle-tree based access control
 
-
-## Instructions
-1. Install [SQLITE](https://www.sqlite.org)
-2. Clone this repository
-3. Run in QT Creator.
-
-Tree DB can be located by foing to Projects -> Build & Run -> Run -> Working Directory. DB will be generated there
-
---- 
-
-## Generating trees
-
-Uncomment the function call fakeVDsTrees() from main to generate fake trees to be combined later.
+## Important:
+* This project is used only to represent how the concept of merkle-tree based access control works.
+* A link to the according article will be attached when published.
+* Basic scenarios are implemented for test purposes. 
+* Polymorphism is used to provide different data providers.
